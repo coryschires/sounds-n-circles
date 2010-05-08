@@ -1,0 +1,44 @@
+// This file contains footer style - including sticky footer. Include this file 
+// into another stylesheet using @import footer.sass. There's no need to include 
+// the initial underscore.
+
+
+footer
+  :position relative
+  :margin-top = !footer_height * -1
+  :height = !footer_height
+  :clear both
+  :background = !light_gray
+
+  #copyright
+    :font-size 11px
+    :width = !pagewrap_width
+    :margin auto
+    :padding 16px 0 0 0
+    
+    
+//------------------------------------------------------------------------------------------------------------------
+//                                                    STICKY FOOTER                    
+//------------------------------------------------------------------------------------------------------------------    
+html, body, #pagewrap
+  :height 100%
+
+body > #pagewrap
+  :height auto
+  :min-height 100%
+
+#main
+  :overflow auto
+  :padding-bottom = !footer_height
+
+// opera fix    
+body:before
+  :content ""
+  :height 100%
+  :float left
+  :width 0
+  :margin-top -32767px
+
+// ie 8 fix
+.win.ie8 #pagewrap 
+  :display table

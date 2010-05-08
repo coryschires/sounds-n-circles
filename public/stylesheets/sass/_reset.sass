@@ -1,0 +1,52 @@
+// This file contains the global style reset. Include this file into another stylesheet
+// using @import reset.sass. There's no need to include the initial underscore.
+*
+  :margin 0
+  :padding 0
+
+body
+  :font-size 12px
+  :line-height 16px
+  :letter-spacing 0.3px
+  :font-family Helvetica, Verdana, Arial, sans-serif
+  :color = !dark_gray
+
+header
+  :display block
+
+nav
+  :display block
+
+footer
+  :display block
+
+ul
+  :list-style disc inside
+  :padding-left 10px
+
+ol
+  :list-style decimal inside
+  :padding-left 10px
+
+li
+  :list-style-position outside
+
+a
+  :outline none
+  :text-decoration none
+
+  img
+    :border none
+    :background none
+
+img
+  :vertical-align middle
+
+table
+  :border-collapse collapse
+
+textarea
+  :resize none
+
+input:focus, textarea:focus
+  :outline none

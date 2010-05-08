@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= yield(:title) || "Untitled" %></title>
+	<%= yield(:meta_keywords) %>
+	<%= yield(:meta_description) %>
+
+    <%= html5 'http://html5shiv.googlecode.com/svn/trunk/html5.js' %>
+    <%= csrf_meta_tag %>
+
+    <%= javascript_include_tag 'http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js' %>
+    <%= javascript_include_tag 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js' %>
+    <%= javascript_include_tag 'rails', 'processing-0.8', 'jquery.browser', 'jquery.validate' %>
+
+	<%= yield(:head) %>
+
+    <%= javascript_include_tag 'sounds_n_circles', 'application' %>
+    <%= stylesheet_link_tag 'application' %>
+</head>
+<body>  
+    <div id="pagewrap">
+        <nav id="utility">
+            <%= link_to "create an account", "#" %> &nbsp;|&nbsp;
+            <%= link_to "login", "#" %>
+        </nav>
+        <header>
+            <h1>Sounds and Circles</h1>
+        </header>
+
+        <div id="main"><%= yield %></div>
+
+    </div><!-- pagewrap -->
+    <div class="spacer"></div>
+    <footer>
+        <div id="copyright">&copy; <%= Time.now.year %> Cory Schires</div>            
+    </footer>
+
+</body>
+</html>

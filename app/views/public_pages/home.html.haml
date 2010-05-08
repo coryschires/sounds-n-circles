@@ -1,0 +1,48 @@
+-title "Sounds and Circles"
+
+#art_board_wrapper
+  #tempo_toggle
+    =link_to "increase tempo"
+    &nbsp; | &nbsp;
+    =link_to "decrease tempo"
+  = processing_canvas "sounds_n_circles"
+  =link_to "Pause", "#", :id => "pause_play", :class => "button"
+  
+  %p==Like what you’ve done? #{link_to "Create an account"} to save, share, and export your creation.
+
+
+
+#recent_favorites.section
+  %h2 Recent favorites.
+  -@recent_favorites.each do |project|
+    .project
+      %h3=link_to project[:title]
+      %p.description=project[:description]
+      %p.meta==#{project[:published_at]} &ndash; by #{link_to project[:user]}
+
+#most_popular.section
+  %h2 Most popular.
+  -@recent_favorites.each do |project|
+    .project
+      %h3=link_to project[:title]
+      %p.description=project[:description]
+      %p.meta==#{project[:published_at]} &ndash; by #{link_to project[:user]}
+
+#about.section.last
+  %h2 About this project.
+  %p
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et 
+    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip 
+    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
+    fugiat nulla pariatur.
+  %blockquote
+    %span.open &ldquo;
+    sounds and circles began as an experiment in programming sound and visualizations for the web.
+    %span.close &bdquo;
+  %p
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et 
+    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip 
+    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
+    fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt 
+    mollit anim id est laborum.
+    
