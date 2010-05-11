@@ -9,8 +9,7 @@ var sounds_n_circles = function() {
     var artboard_builder = function() {
         var circles = [],
             selected_circle = null,
-            cursor = 'move';
-        
+            canvas = $('canvas#sounds_n_circles');
         
         return {
             find_clicked_circles: function(x, y) {
@@ -38,9 +37,72 @@ var sounds_n_circles = function() {
                 };
                 return smallest_circle;
             },
+            find_polor_coords: function(theta, circle) {
+                var angle = p.radians(theta),
+                    radius = circle.radius,
+                    oppsite = p.sin(angle) * radius,
+                    adjacent = p.cos(angle) * radius;
+                return {
+                    x: adjacent+circle.x,
+                    y: oppsite+circle.y
+                }                
+            },
+            determine_cursor: function() {
+                var cursor = 'default';       
+
+                if (artboard.selected_circle) {
+                    var circle = artboard.selected_circle,
+                        distance = p.dist(circle.x, circle.y, p.mouseX, p.mouseY),
+                        resizing = distance > circle.radius && distance < circle.radius + 4;
+
+                    // get polar coords for selected circle
+                    var a = artboard.find_polor_coords(22.5, circle),
+                        b = artboard.find_polor_coords(67.5, circle),
+                        c = artboard.find_polor_coords(112.5, circle),
+                        d = artboard.find_polor_coords(157.5, circle),
+                        e = artboard.find_polor_coords(202.5, circle),
+                        f = artboard.find_polor_coords(247.5, circle),
+                        g = artboard.find_polor_coords(292.5, circle),
+                        h = artboard.find_polor_coords(337.5, circle);                                                
+                    
+                    
+                    // p.fill(0);
+                    // p.ellipse(a.x, a.y, 10, 10);
+                    // p.fill(150);
+                    // p.ellipse(b.x, b.y, 10, 10);
+                    // p.ellipse(c.x, c.y, 10, 10);
+                    // p.ellipse(d.x, d.y, 10, 10);
+                    // p.ellipse(e.x, e.y, 10, 10);
+                    // p.ellipse(f.x, f.y, 10, 10);
+                    // p.ellipse(g.x, g.y, 10, 10);
+                    // p.ellipse(h.x, h.y, 10, 10);
+
+                        
+                    var south_east = (p.mouseY > a.y && p.mouseY < b.y && p.mouseX > b.x);
+                    var south = (p.mouseY > b.y);
+                    var south_west = (p.mouseY < c.y && p.mouseY > d.y && p.mouseX < c.x);
+                    var west = (p.mouseX < d.x);
+                    var north_west = (p.mouseY < e.y && p.mouseY > f.y && p.mouseX < f.x);
+                    var north = (p.mouseY < f.y);
+                    var north_east = (p.mouseY > g.y && p.mouseY < h.y && p.mouseX > g.x);
+                    var east = (p.mouseY > h.y && p.mouseY < a.y && p.mouseX > h.x);
+                    
+                    if (distance <= 20) { cursor = 'move'; };
+                    if (resizing && south_east) { cursor = 'se-resize'; };
+                    if (resizing && south) { cursor = 's-resize'; };                    
+                    if (resizing && south_west) { cursor = 'sw-resize'; };
+                    if (resizing && west) { cursor = 'w-resize'; };
+                    if (resizing && north_west) { cursor = 'nw-resize'; };
+                    if (resizing && north) { cursor = 'n-resize'; };
+                    if (resizing && north_east) { cursor = 'ne-resize'; };
+                    if (resizing && east) { cursor = 'e-resize'; };
+                    
+                };
+                return cursor;
+            },
+            canvas: canvas,
             circles: circles,
-            selected_circle: selected_circle,
-            cursor: cursor
+            selected_circle: selected_circle
         }
     };
     
@@ -107,7 +169,6 @@ var sounds_n_circles = function() {
                 p.strokeWeight(stroke_weight);
                 p.fill(selected_circle_color)
                 p.ellipse(p.mouseX, p.mouseY, diameter, diameter);
-
             },
             selected_circle: function(circle) {
                 p.fill(selected_circle_color);
@@ -131,7 +192,7 @@ var sounds_n_circles = function() {
                 // draw crosshairs
                 p.stroke(full_selected_circle_color);
                 p.strokeWeight(1);
-
+            
                 p.line(x-4,y, x+4,y);       // horizontal line
                 p.line(x,y-4, x,y+4);       // vetical line
                 p.line(x-1,y+3, x+1,y+3);   // north cross
@@ -150,7 +211,6 @@ var sounds_n_circles = function() {
         creating_circle = false,
         new_circle_x = null,
         new_circle_y = null,
-        canvas = $('canvas#sounds_n_circles'),
         full_circle_color = p.color(193, 20, 64),
         full_selected_circle_color = p.color(245, 217, 224),
         circle_color = p.color(193, 20, 64, 127),
@@ -163,7 +223,6 @@ var sounds_n_circles = function() {
     };
     p.draw = function() {
         p.background(255);
-        canvas.css('cursor', artboard.cursor)
          
         for (var i=0; i < artboard.circles.length; i++) {
             artboard.circles[i].display();
@@ -176,14 +235,18 @@ var sounds_n_circles = function() {
             animations.moving_circle(100);
         };
         
+        
+        artboard.canvas.css('cursor', artboard.determine_cursor());
+
+        
     };
     p.mousePressed = function() {
         if (p.mouseButton == p.LEFT) {
             creating_circle = true;
             new_circle_x = p.mouseX;
             new_circle_y = p.mouseY;                
-        };  
-    }
+        };
+    };
     p.mouseReleased = function() {
         
         if (creating_circle && new_circle_x != p.mouseX && new_circle_y != p.mouseY) {
@@ -192,12 +255,11 @@ var sounds_n_circles = function() {
             artboard.circles.push(new_circle);
         };           
         creating_circle = false;
-    }
-    canvas.dblclick(function(e) {
-      	var clicked_x = e.pageX - this.offsetLeft,
-      	    clicked_y = e.pageY - this.offsetTop;
+    };
+    artboard.canvas.dblclick(function(e) {
+         var clicked_x = e.pageX - this.offsetLeft,
+             clicked_y = e.pageY - this.offsetTop;
 
-        
         artboard.unselect_all();
         
         var clicked_circles = artboard.find_clicked_circles(clicked_x, clicked_y);
@@ -210,27 +272,7 @@ var sounds_n_circles = function() {
             };
             artboard.selected_circle.selected(true);
         };
-
-    });
-    canvas.mousemove(function(e) {
-
-
-        if (artboard.selected_circle) {
-            var position_x = e.pageX - this.offsetLeft,
-                position_y = e.pageY - this.offsetTop;
-            
-            var distance_from_center_pt = p.dist(artboard.selected_circle.x, artboard.selected_circle.y, position_x, position_y);
-            
-            if (distance_from_center_pt < 20) {
-                artboard.cursor = 'move';
-            } else {
-                artboard.cursor = 'default';                
-            };
-          	
-        } else {
-            artboard.cursor = 'default';
-        };
-
+    
     });
         
     p.init('true');
