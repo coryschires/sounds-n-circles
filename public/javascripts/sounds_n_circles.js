@@ -52,8 +52,8 @@ var sounds_n_circles = function() {
 
                 if (artboard.selected_circle) {
                     var circle = artboard.selected_circle,
-                        distance = p.dist(circle.x, circle.y, p.mouseX, p.mouseY),
-                        resizing = distance > circle.radius && distance < circle.radius + 4;
+                        distance_from_pole = p.dist(circle.x, circle.y, p.mouseX, p.mouseY),
+                        resizing = distance_from_pole > circle.radius && distance_from_pole < circle.radius + 4;
 
                     // get polar coords for selected circle
                     var a = artboard.find_polor_coords(22.5, circle),
@@ -63,39 +63,29 @@ var sounds_n_circles = function() {
                         e = artboard.find_polor_coords(202.5, circle),
                         f = artboard.find_polor_coords(247.5, circle),
                         g = artboard.find_polor_coords(292.5, circle),
-                        h = artboard.find_polor_coords(337.5, circle);                                                
+                        h = artboard.find_polor_coords(337.5, circle);
                     
+                    // booleans for cursor conditions
+                    var moving = distance_from_pole <= 20,
+                        south_east = p.mouseY > a.y && p.mouseY < b.y && p.mouseX > b.x && resizing,
+                        south = p.mouseY > b.y && resizing,
+                        south_west = p.mouseY < c.y && p.mouseY > d.y && p.mouseX < c.x && resizing,
+                        west = p.mouseX < d.x && resizing,
+                        north_west = p.mouseY < e.y && p.mouseY > f.y && p.mouseX < f.x && resizing,
+                        north = p.mouseY < f.y && resizing,
+                        north_east = p.mouseY > g.y && p.mouseY < h.y && p.mouseX > g.x && resizing,
+                        east = p.mouseY > h.y && p.mouseY < a.y && p.mouseX > h.x && resizing;
                     
-                    // p.fill(0);
-                    // p.ellipse(a.x, a.y, 10, 10);
-                    // p.fill(150);
-                    // p.ellipse(b.x, b.y, 10, 10);
-                    // p.ellipse(c.x, c.y, 10, 10);
-                    // p.ellipse(d.x, d.y, 10, 10);
-                    // p.ellipse(e.x, e.y, 10, 10);
-                    // p.ellipse(f.x, f.y, 10, 10);
-                    // p.ellipse(g.x, g.y, 10, 10);
-                    // p.ellipse(h.x, h.y, 10, 10);
-
-                        
-                    var south_east = (p.mouseY > a.y && p.mouseY < b.y && p.mouseX > b.x);
-                    var south = (p.mouseY > b.y);
-                    var south_west = (p.mouseY < c.y && p.mouseY > d.y && p.mouseX < c.x);
-                    var west = (p.mouseX < d.x);
-                    var north_west = (p.mouseY < e.y && p.mouseY > f.y && p.mouseX < f.x);
-                    var north = (p.mouseY < f.y);
-                    var north_east = (p.mouseY > g.y && p.mouseY < h.y && p.mouseX > g.x);
-                    var east = (p.mouseY > h.y && p.mouseY < a.y && p.mouseX > h.x);
-                    
-                    if (distance <= 20) { cursor = 'move'; };
-                    if (resizing && south_east) { cursor = 'se-resize'; };
-                    if (resizing && south) { cursor = 's-resize'; };                    
-                    if (resizing && south_west) { cursor = 'sw-resize'; };
-                    if (resizing && west) { cursor = 'w-resize'; };
-                    if (resizing && north_west) { cursor = 'nw-resize'; };
-                    if (resizing && north) { cursor = 'n-resize'; };
-                    if (resizing && north_east) { cursor = 'ne-resize'; };
-                    if (resizing && east) { cursor = 'e-resize'; };
+                    // conditionally set cursor style
+                    if (moving) { cursor = 'move'; };
+                    if (south_east) { cursor = 'se-resize'; };
+                    if (south) { cursor = 's-resize'; };                    
+                    if (south_west) { cursor = 'sw-resize'; };
+                    if (west) { cursor = 'w-resize'; };
+                    if (north_west) { cursor = 'nw-resize'; };
+                    if (north) { cursor = 'n-resize'; };
+                    if (north_east) { cursor = 'ne-resize'; };
+                    if (east) { cursor = 'e-resize'; };
                     
                 };
                 return cursor;
