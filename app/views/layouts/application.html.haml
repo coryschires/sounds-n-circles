@@ -8,7 +8,7 @@
     =html5 'http://html5shiv.googlecode.com/svn/trunk/html5.js'
     =csrf_meta_tag
     
-    =javascript_include_tag 'jquery.local'
+    =javascript_include_tag 'jquery.local', 'augment_basic_types'
     =javascript_include_tag 'rails', 'processing-0.8', 'jquery.browser', 'jquery.validate'
     
     = yield(:head)

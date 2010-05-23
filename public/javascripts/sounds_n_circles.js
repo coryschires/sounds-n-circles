@@ -31,7 +31,7 @@ var sounds_n_circles = function() {
             for (var i=0; i < circles.length; i++) {
                 circles[i].selected = false;                    
             };
-            selected_circle = null;                
+            selected_circle = null;
         };        
         that.find_smallest_circle = function(circles_array) {
             var smallest_circle = circles_array[0];
@@ -118,12 +118,7 @@ var sounds_n_circles = function() {
         that.x = x;
         that.y = y;
 
-        that.reset_location = function() {
-            that.x = p.mouseX;
-            that.y = p.mouseY;
-        };        
-
-
+        // public instance methods
         that.display = function() {
             if (!that.hidden) {
                 if (that.selected) {
@@ -133,77 +128,111 @@ var sounds_n_circles = function() {
                 };                    
             };
         };
+        that.stroke_weight = function() {
+            var stroke_weight = that.selected ? 4 : 0
+            return stroke_weight;
+        };
+        that.diameter = function() {
+            var diameter = that.radius*2 - that.stroke_weight();
+            return diameter
+        };
+        that.reset_location = function() {
+            that.x = p.mouseX;
+            that.y = p.mouseY;
+        };        
         that.delete = function() {
-            
-            console.log(circles.length);
-            
-            // function to delete a circle from the global circles array.
-            // possibly extend Array.prototype ?
+            var index = circles.index(that);
+            circles.splice(index, 1);
+            selected_circle = null;            
         };
         that.area_includes = function(clicked_x, clicked_y) {
             var distance = p.dist(clicked_x,clicked_y, that.x, that.y);
             return distance < that.radius;
         };
-        
+        that.fill = function() {
+            var fill_color = that.selected ? full_selected_circle_color : circle_color
+            p.fill(fill_color);
+        };
+        that.stroke = function() {
+            var stroke_color = that.selected ? full_circle_color : full_circle_color
+            p.stroke(stroke_color);
+        };
+
         return that;
     };
     
     /*--------------------------------------------------------------------------------------------
                                         ANIMATIONS FUNCTIONS                    
     --------------------------------------------------------------------------------------------*/
-    var animations = function() {
+    var animations_builder = function() {
         var that = {};
+        
         
         // public instance methods
         that.drawing_circle = function() {
             var radius = p.dist(new_circle_x, new_circle_y, p.mouseX, p.mouseY);
-            var diameter = (radius * 2) - stroke_weight;
+            var diameter = (radius * 2) - 4;
         
             p.stroke(circle_color);
-            p.strokeWeight(stroke_weight);
+            p.strokeWeight(4);
             p.fill(selected_circle_color);                
             p.ellipse(new_circle_x, new_circle_y, diameter, diameter);
         };
         that.moving_circle = function(circle) {
-            var diameter = (circle.radius * 2) - stroke_weight;            
-
             crosshairs(p.mouseX, p.mouseY, full_circle_color);
-            p.stroke(circle_color);
-            p.strokeWeight(stroke_weight);
-            p.fill(selected_circle_color)
-            p.ellipse(p.mouseX, p.mouseY, diameter, diameter);
+
+            p.strokeWeight(circle.stroke_weight());
+            circle.fill();
+            circle.stroke();
+
+            p.ellipse(p.mouseX, p.mouseY, circle.diameter(), circle.diameter());
         };
         that.resizing_circle = function(circle) {
             var radius = p.dist(circle.x, circle.y, p.mouseX, p.mouseY);                
-            var diameter = (radius * 2) - stroke_weight;
+            var diameter = (radius * 2) - 4;
 
             crosshairs(circle.x, circle.y, circle_color);
-            p.stroke(full_circle_color);
-            p.strokeWeight(stroke_weight);
-            p.fill(selected_circle_color)
+
+            p.strokeWeight(circle.stroke_weight());
+            circle.fill();
+            circle.stroke();
             p.ellipse(circle.x, circle.y, diameter, diameter);
         };
         that.selected_circle = function(circle) {
-            var diameter = circle.radius *2;
-            p.fill(selected_circle_color);
-            p.stroke(full_circle_color);
-            p.strokeWeight(stroke_weight);
-            p.ellipse(circle.x, circle.y, diameter, diameter);
+            p.strokeWeight(circle.stroke_weight());
+            circle.fill();
+            circle.stroke();            
+            
+            p.ellipse(circle.x, circle.y, circle.diameter(), circle.diameter());
             crosshairs(circle.x, circle.y, full_circle_color);
         };
         that.unselected_circle = function(circle){
-            var diameter = circle.radius *2;
-            p.fill(circle_color);
-            p.stroke(full_circle_color);
-            p.strokeWeight(0);
-            p.ellipse(circle.x, circle.y, diameter, diameter);  
+            p.strokeWeight(circle.stroke_weight());            
+            circle.fill();
+            circle.stroke();            
+            p.ellipse(circle.x, circle.y, circle.diameter(), circle.diameter());  
         };
         
         // private methods
+        // var get_colors_for = function(circle) {
+        //     if (circle.selected === true) {
+        //         p.fill(full_selected_circle_color);
+        //         p.stroke(full_circle_color);
+        //     } else {
+        //         p.fill(circle_color);
+        //         p.stroke(full_circle_color);
+        //     };
+        // };
+        // var set_stroke_for = function(circle) {
+        //     var stroke_weight = circle.selected ? 4 : 0;
+        // 
+        //     p.strokeWeight(stroke_weight);
+        //     return stroke_weight;
+        // };
         var crosshairs = function(x, y, color) {
             // draw container circle
             p.noStroke();
-            p.fill(color)
+            p.fill(full_circle_color)
             p.ellipse(x, y, 20, 20);
         
             // draw crosshairs
@@ -219,7 +248,7 @@ var sounds_n_circles = function() {
         };
         
         return that;
-    }();
+    };
 
 
     /*--------------------------------------------------------------------------------------------
@@ -234,13 +263,14 @@ var sounds_n_circles = function() {
         selected_circle = null,
         circles = [],
 
-        stroke_weight = 4,
-        
+        // private color variables
         full_circle_color = p.color(193, 20, 64),
-        full_selected_circle_color = p.color(245, 217, 224),
+        full_selected_circle_color = p.color(245, 217, 224, 200),
         circle_color = p.color(193, 20, 64, 127),
         selected_circle_color = p.color(193, 20, 64, 40),
+
         artboard = artboard_builder();
+        animations = animations_builder();
 
     p.setup = function() {
         p.size(958, 400);
@@ -329,8 +359,14 @@ var sounds_n_circles = function() {
                 selected_circle = artboard.find_smallest_circle(clicked_circles);
             };
             selected_circle.selected = true;
+
+            // move selected circle to front of circles array
+            var index = circles.index(selected_circle);
+            circles.splice(index, 1);
+            circles.push(selected_circle);
         };
     });
+    
     $(document).keypress(function(e) {
         if (e.which === 8) {
             selected_circle.delete();
