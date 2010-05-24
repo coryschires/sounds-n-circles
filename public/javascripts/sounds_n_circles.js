@@ -121,20 +121,33 @@ var sounds_n_circles = function() {
         // public instance methods
         that.display = function() {
             if (!that.hidden) {
-                if (that.selected) {
-                    animations.selected_circle(that);
-                } else {
-                    animations.unselected_circle(that);
-                };                    
+                that.stroke_weight();
+                that.fill();
+                that.stroke();            
+                p.ellipse(that.x, that.y, that.diameter(), that.diameter());
+                
+                // add crosshairs if circle is selected
+                if (that.selected) { 
+                    that.show_crosshairs(that.x, that.y, full_circle_color); 
+                };
             };
         };
         that.stroke_weight = function() {
             var stroke_weight = that.selected ? 4 : 0
+            p.strokeWeight(stroke_weight)
             return stroke_weight;
         };
         that.diameter = function() {
             var diameter = that.radius*2 - that.stroke_weight();
             return diameter
+        };
+        that.fill = function() {
+            var fill_color = that.selected ? full_selected_circle_color : circle_color
+            p.fill(fill_color);
+        };
+        that.stroke = function() {
+            var stroke_color = that.selected ? full_circle_color : full_circle_color
+            p.stroke(stroke_color);
         };
         that.reset_location = function() {
             that.x = p.mouseX;
@@ -149,13 +162,25 @@ var sounds_n_circles = function() {
             var distance = p.dist(clicked_x,clicked_y, that.x, that.y);
             return distance < that.radius;
         };
-        that.fill = function() {
-            var fill_color = that.selected ? full_selected_circle_color : circle_color
-            p.fill(fill_color);
-        };
-        that.stroke = function() {
-            var stroke_color = that.selected ? full_circle_color : full_circle_color
-            p.stroke(stroke_color);
+        
+        // private methods
+        that.show_crosshairs = function(x, y, color) {
+            
+            // draw container circle
+            p.noStroke();
+            p.fill(color)
+            p.ellipse(x, y, 20, 20);
+
+            // draw crosshairs
+            p.stroke(full_selected_circle_color);
+            p.strokeWeight(1);
+
+            p.line(x-4,y, x+4,y);       // horizontal line
+            p.line(x,y-4, x,y+4);       // vetical line
+            p.line(x-1,y+3, x+1,y+3);   // north cross
+            p.line(x+1,y-3, x-1,y-3);   // south cross
+            p.line(x+3,y+1, x+3,y-1);   // east cross
+            p.line(x-3,y+1, x-3,y-1);   // west cross
         };
 
         return that;
@@ -169,7 +194,7 @@ var sounds_n_circles = function() {
         
         
         // public instance methods
-        that.drawing_circle = function() {
+        that.creating_circle = function() {
             var radius = p.dist(new_circle_x, new_circle_y, p.mouseX, p.mouseY);
             var diameter = (radius * 2) - 4;
         
@@ -179,9 +204,9 @@ var sounds_n_circles = function() {
             p.ellipse(new_circle_x, new_circle_y, diameter, diameter);
         };
         that.moving_circle = function(circle) {
-            crosshairs(p.mouseX, p.mouseY, full_circle_color);
+            circle.show_crosshairs(p.mouseX, p.mouseY, full_circle_color);
 
-            p.strokeWeight(circle.stroke_weight());
+            circle.stroke_weight();
             circle.fill();
             circle.stroke();
 
@@ -191,60 +216,12 @@ var sounds_n_circles = function() {
             var radius = p.dist(circle.x, circle.y, p.mouseX, p.mouseY);                
             var diameter = (radius * 2) - 4;
 
-            crosshairs(circle.x, circle.y, circle_color);
+            circle.show_crosshairs(circle.x, circle.y, circle_color);
 
             p.strokeWeight(circle.stroke_weight());
             circle.fill();
             circle.stroke();
             p.ellipse(circle.x, circle.y, diameter, diameter);
-        };
-        that.selected_circle = function(circle) {
-            p.strokeWeight(circle.stroke_weight());
-            circle.fill();
-            circle.stroke();            
-            
-            p.ellipse(circle.x, circle.y, circle.diameter(), circle.diameter());
-            crosshairs(circle.x, circle.y, full_circle_color);
-        };
-        that.unselected_circle = function(circle){
-            p.strokeWeight(circle.stroke_weight());            
-            circle.fill();
-            circle.stroke();            
-            p.ellipse(circle.x, circle.y, circle.diameter(), circle.diameter());  
-        };
-        
-        // private methods
-        // var get_colors_for = function(circle) {
-        //     if (circle.selected === true) {
-        //         p.fill(full_selected_circle_color);
-        //         p.stroke(full_circle_color);
-        //     } else {
-        //         p.fill(circle_color);
-        //         p.stroke(full_circle_color);
-        //     };
-        // };
-        // var set_stroke_for = function(circle) {
-        //     var stroke_weight = circle.selected ? 4 : 0;
-        // 
-        //     p.strokeWeight(stroke_weight);
-        //     return stroke_weight;
-        // };
-        var crosshairs = function(x, y, color) {
-            // draw container circle
-            p.noStroke();
-            p.fill(full_circle_color)
-            p.ellipse(x, y, 20, 20);
-        
-            // draw crosshairs
-            p.stroke(full_selected_circle_color);
-            p.strokeWeight(1);
-        
-            p.line(x-4,y, x+4,y);       // horizontal line
-            p.line(x,y-4, x,y+4);       // vetical line
-            p.line(x-1,y+3, x+1,y+3);   // north cross
-            p.line(x+1,y-3, x-1,y-3);   // south cross
-            p.line(x+3,y+1, x+3,y-1);   // east cross
-            p.line(x-3,y+1, x-3,y-1);   // west cross
         };
         
         return that;
@@ -266,6 +243,7 @@ var sounds_n_circles = function() {
         // private color variables
         full_circle_color = p.color(193, 20, 64),
         full_selected_circle_color = p.color(245, 217, 224, 200),
+
         circle_color = p.color(193, 20, 64, 127),
         selected_circle_color = p.color(193, 20, 64, 40),
 
@@ -284,7 +262,7 @@ var sounds_n_circles = function() {
         };
         
         if (artboard.circle_being_created) {
-            animations.drawing_circle();
+            animations.creating_circle();
         };
         
         if (artboard.circle_being_resized) {
@@ -370,6 +348,7 @@ var sounds_n_circles = function() {
     $(document).keypress(function(e) {
         if (e.which === 8) {
             selected_circle.delete();
+            return false;
         };
     });
     
