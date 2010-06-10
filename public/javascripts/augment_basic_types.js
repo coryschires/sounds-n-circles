@@ -13,6 +13,6 @@ Array.method('index', function (member) {
     return index;
 });
 
-// Processing.method('circle', function (x, y, diameter) {
-//     return Processing.ellipse(x, y, diameter, diameter);
-// });
+Processing.method('circle', function (x, y, radius) {
+    return Processing.ellipse(x, y, radius*2, radius*2);
+});

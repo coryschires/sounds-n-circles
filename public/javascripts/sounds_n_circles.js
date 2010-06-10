@@ -29,7 +29,7 @@ var sounds_n_circles = function() {
         };
         that.unselect_all = function() {
             for (var i=0; i < circles.length; i++) {
-                circles[i].selected = false;                    
+                circles[i].set_selected(false);
             };
             selected_circle = null;
         };        
@@ -113,47 +113,35 @@ var sounds_n_circles = function() {
         
         // public instance variables
         that.radius = radius;
+        that.stroke_weight = 0;
+        that.stroke_color = colors.fill;
+        that.fill_color = colors.fill;
         that.selected = false;
         that.hidden = false;
         that.x = x;
         that.y = y;
 
+
         // public instance methods
         that.display = function() {
             if (!that.hidden) {
-                that.stroke_weight();
-                that.fill();
-                that.stroke();            
-                p.ellipse(that.x, that.y, that.diameter(), that.diameter());
+                p.strokeWeight(that.stroke_weight);
+                p.stroke(that.stroke_color);
+                p.fill(that.fill_color);
+                          
+                p.circle(that.x, that.y, that.radius);
                 
                 // add crosshairs if circle is selected
                 if (that.selected) { 
-                    that.show_crosshairs(that.x, that.y, full_circle_color); 
+                    that.show_crosshairs(that.x, that.y, colors.selected_stroke); 
                 };
             };
-        };
-        that.stroke_weight = function() {
-            var stroke_weight = that.selected ? 4 : 0
-            p.strokeWeight(stroke_weight)
-            return stroke_weight;
-        };
-        that.diameter = function() {
-            var diameter = that.radius*2 - that.stroke_weight();
-            return diameter
-        };
-        that.fill = function() {
-            var fill_color = that.selected ? full_selected_circle_color : circle_color
-            p.fill(fill_color);
-        };
-        that.stroke = function() {
-            var stroke_color = that.selected ? full_circle_color : full_circle_color
-            p.stroke(stroke_color);
         };
         that.reset_location = function() {
             that.x = p.mouseX;
             that.y = p.mouseY;
         };        
-        that.delete = function() {
+        that.destroy = function() {
             var index = circles.index(that);
             circles.splice(index, 1);
             selected_circle = null;            
@@ -162,6 +150,23 @@ var sounds_n_circles = function() {
             var distance = p.dist(clicked_x,clicked_y, that.x, that.y);
             return distance < that.radius;
         };
+        that.set_selected = function(boolean_value) {
+            // do nothing if circle is already selected
+                if (boolean_value) {
+                    // do nothing if circle is already selected
+                    if (!that.selected) {
+                        that.stroke_color = colors.selected_stroke;
+                        that.fill_color = colors.selected_fill;
+                        that.stroke_weight = 4;
+                    };
+                } else {
+                    that.fill_color = colors.fill;
+                    that.stroke_weight = 0;
+                };
+                that.selected = boolean_value;
+
+            // };
+        };
         
         // private methods
         that.show_crosshairs = function(x, y, color) {
@@ -169,10 +174,10 @@ var sounds_n_circles = function() {
             // draw container circle
             p.noStroke();
             p.fill(color)
-            p.ellipse(x, y, 20, 20);
+            p.circle(x, y, 10);
 
             // draw crosshairs
-            p.stroke(full_selected_circle_color);
+            p.stroke(colors.selected_fill);
             p.strokeWeight(1);
 
             p.line(x-4,y, x+4,y);       // horizontal line
@@ -189,39 +194,83 @@ var sounds_n_circles = function() {
     /*--------------------------------------------------------------------------------------------
                                         ANIMATIONS FUNCTIONS                    
     --------------------------------------------------------------------------------------------*/
+    var tempo_bar = function() {
+        that = {};
+        
+        // public instance variables
+        that.playing = true;
+        that.current_position = 0;        
+        
+        // public instance methods
+        that.animate = function() {
+            if (that.playing) {
+                var intersecting_circles = find_intersecting_circles(that.current_position, circles);
+                play_sound(intersecting_circles);
+                
+                display(that.current_position);                
+                that.current_position = that.current_position > p.width ? 0 : that.current_position += 1;
+            };
+        }
+                 
+        // private instance methods
+        var display = function(x_coord) {
+            p.strokeWeight(1);
+            p.stroke(55);
+            p.line(x_coord, p.height, x_coord, 0)
+        }
+        var find_intersecting_circles = function(x_coord, circles) {
+            var intersecting_circles = []
+            for (var i=0; i < circles.length; i++) {
+                if (circles[i].x === x_coord) {
+                    intersecting_circles.push(circles[i]);
+                };
+            };
+            return intersecting_circles
+        };
+        var play_sound = function(circles_array) {
+            for (var i=0; i < circles_array.length; i++) {
+                sounds.play();
+            };
+        }
+        
+        return that;
+    };
+    
+    
+    /*--------------------------------------------------------------------------------------------
+                                        ANIMATIONS FUNCTIONS                    
+    --------------------------------------------------------------------------------------------*/
     var animations_builder = function() {
         var that = {};
-        
         
         // public instance methods
         that.creating_circle = function() {
             var radius = p.dist(new_circle_x, new_circle_y, p.mouseX, p.mouseY);
-            var diameter = (radius * 2) - 4;
         
-            p.stroke(circle_color);
+            p.stroke(colors.fill);
             p.strokeWeight(4);
-            p.fill(selected_circle_color);                
-            p.ellipse(new_circle_x, new_circle_y, diameter, diameter);
+            p.fill(p.color(193, 20, 64, 40));                
+            p.circle(new_circle_x, new_circle_y, radius);
         };
         that.moving_circle = function(circle) {
-            circle.show_crosshairs(p.mouseX, p.mouseY, full_circle_color);
+            circle.show_crosshairs(p.mouseX, p.mouseY, colors.selected_stroke);
 
-            circle.stroke_weight();
-            circle.fill();
-            circle.stroke();
+            p.strokeWeight(circle.stroke_weight);
+            p.fill(circle.fill_color);
+            p.stroke(circle.stroke_color);
 
-            p.ellipse(p.mouseX, p.mouseY, circle.diameter(), circle.diameter());
+            p.circle(p.mouseX, p.mouseY, circle.radius);
         };
         that.resizing_circle = function(circle) {
             var radius = p.dist(circle.x, circle.y, p.mouseX, p.mouseY);                
-            var diameter = (radius * 2) - 4;
+            var radius = radius - 4;
 
-            circle.show_crosshairs(circle.x, circle.y, circle_color);
+            circle.show_crosshairs(circle.x, circle.y, colors.fill);
 
-            p.strokeWeight(circle.stroke_weight());
-            circle.fill();
-            circle.stroke();
-            p.ellipse(circle.x, circle.y, diameter, diameter);
+            p.strokeWeight(circle.stroke_weight);
+            p.fill(circle.fill_color);
+            p.stroke(circle.stroke_color);
+            p.circle(circle.x, circle.y, radius);
         };
         
         return that;
@@ -238,17 +287,25 @@ var sounds_n_circles = function() {
         
         canvas = $('canvas#sounds_n_circles'),
         selected_circle = null,
-        circles = [],
-
-        // private color variables
-        full_circle_color = p.color(193, 20, 64),
-        full_selected_circle_color = p.color(245, 217, 224, 200),
-
+        circles = [],        
         circle_color = p.color(193, 20, 64, 127),
-        selected_circle_color = p.color(193, 20, 64, 40),
+        
+        // initialize required objects
+        artboard = artboard_builder(),
+        animations = animations_builder(),
+        tempo_bar = tempo_bar();
 
-        artboard = artboard_builder();
-        animations = animations_builder();
+        var colors = {
+            selected_fill: p.color(245, 217, 224, 200), // colors.selected_fill
+            selected_stroke: p.color(193, 20, 64), // full circle color
+            fill: p.color(193, 20, 64, 127), // circle color
+            border: p.color(193, 20, 64, 127) // circle color
+        };
+
+    // custom processing functions
+    p.circle = function (x, y, radius) {
+        return p.ellipse(x, y, radius*2, radius*2);
+    };
 
     p.setup = function() {
         p.size(958, 400);
@@ -256,7 +313,8 @@ var sounds_n_circles = function() {
     };
     p.draw = function() {
         p.background(255);
-            
+        
+        // draw circles
         for (var i=0; i < circles.length; i++) {
             circles[i].display();
         };
@@ -272,6 +330,8 @@ var sounds_n_circles = function() {
         if (artboard.circle_being_moved) {
             animations.moving_circle(selected_circle);            
         };
+        
+        tempo_bar.animate();
         
         artboard.determine_cursor();
         canvas.css('cursor', artboard.cursor);
@@ -300,7 +360,7 @@ var sounds_n_circles = function() {
     };
 
     p.mouseReleased = function() {
-                
+        
         // circle is being moved
         if (artboard.circle_being_moved) {
             selected_circle.reset_location(p.mouseX, p.mouseY)
@@ -308,7 +368,7 @@ var sounds_n_circles = function() {
         };
         // circle is being resized
         if (artboard.circle_being_resized) {
-            selected_circle.radius = p.dist(selected_circle.x, selected_circle.y, p.mouseX, p.mouseY);
+            selected_circle.radius = p.dist(selected_circle.x, selected_circle.y, p.mouseX, p.mouseY);            
             selected_circle.hidden = false;
         };
         // circle is being created
@@ -322,9 +382,9 @@ var sounds_n_circles = function() {
         artboard.circle_being_moved = false;        
     };
 
-    canvas.dblclick(function(e) {
-        var clicked_x = e.pageX - this.offsetLeft,
-            clicked_y = e.pageY - this.offsetTop;
+    canvas.dblclick(function() {
+        var clicked_x = p.mouseX;
+            clicked_y = p.mouseY;
     
         artboard.unselect_all();
         
@@ -336,7 +396,7 @@ var sounds_n_circles = function() {
             } else {
                 selected_circle = artboard.find_smallest_circle(clicked_circles);
             };
-            selected_circle.selected = true;
+            selected_circle.set_selected(true);
 
             // move selected circle to front of circles array
             var index = circles.index(selected_circle);
@@ -346,10 +406,25 @@ var sounds_n_circles = function() {
     });
     
     $(document).keypress(function(e) {
+        // if delete key pressed
         if (e.which === 8) {
-            selected_circle.delete();
+            selected_circle.destroy();
             return false;
         };
+    });
+    
+    $('#pause_play').click(function() {
+        var button = $(this);
+        
+        // toggle playing
+        that.playing = !that.playing;
+        
+        if (button.text() === "play") {
+            button.text('pause');
+        } else {
+            button.text('play');
+        };
+        return false;
     });
     
     p.init('true');
